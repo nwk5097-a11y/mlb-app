@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 from datetime import datetime
 import plotly.graph_objects as go
+import base64
+from io import BytesIO
 
 # 페이지 설정
 st.set_page_config(
@@ -506,13 +508,26 @@ with tab3:
     
     with col1:
         st.subheader("🇯🇵 Shohei Ohtani (오타니 쇼헤이)")
-        # 오타니 사진 (로컬 파일 사용)
-        ohtani_image_path = "오타니 쇼헤이.gif"
-        try:
-            st.image(ohtani_image_path, width=300, caption="Shohei Ohtani - Los Angeles Dodgers")
-        except Exception as e:
-            st.error(f"오타니 사진을 불러올 수 없습니다: {e}")
-            st.info("파일 경로를 확인해주세요: 오타니 쇼헤이.gif")
+        # 오타니 사진 (여러 경로 시도)
+        import os
+        ohtani_paths = [
+            "오타니 쇼헤이.gif",
+            "./오타니 쇼헤이.gif",
+            os.path.join(os.path.dirname(__file__), "오타니 쇼헤이.gif") if '__file__' in globals() else None,
+            os.path.join(os.getcwd(), "오타니 쇼헤이.gif")
+        ]
+        ohtani_image_loaded = False
+        for img_path in ohtani_paths:
+            if img_path and os.path.exists(img_path):
+                try:
+                    st.image(img_path, width=300, caption="Shohei Ohtani - Los Angeles Dodgers")
+                    ohtani_image_loaded = True
+                    break
+                except:
+                    continue
+        if not ohtani_image_loaded:
+            st.warning("⚠️ 오타니 이미지를 불러올 수 없습니다.")
+            st.info("💡 GitHub 저장소에 '오타니 쇼헤이.gif' 파일을 app.py와 같은 디렉토리에 업로드해주세요.")
         
         st.markdown("""
         **현실의 슈퍼스타**
@@ -523,13 +538,26 @@ with tab3:
     
     with col2:
         st.subheader("🎨 Goro Shigeno (시게노 고로)")
-        # 시게노 고로 사진 (로컬 파일 사용)
-        sawamura_image_path = "시게노 고로.jpeg"
-        try:
-            st.image(sawamura_image_path, width=300, caption="Goro Shigeno - 메이저(MAJOR)")
-        except Exception as e:
-            st.error(f"시게노 고로 사진을 불러올 수 없습니다: {e}")
-            st.info("파일 경로를 확인해주세요: 시게노 고로.jpeg")
+        # 시게노 고로 사진 (여러 경로 시도)
+        import os
+        sawamura_paths = [
+            "시게노 고로.jpeg",
+            "./시게노 고로.jpeg",
+            os.path.join(os.path.dirname(__file__), "시게노 고로.jpeg") if '__file__' in globals() else None,
+            os.path.join(os.getcwd(), "시게노 고로.jpeg")
+        ]
+        sawamura_image_loaded = False
+        for img_path in sawamura_paths:
+            if img_path and os.path.exists(img_path):
+                try:
+                    st.image(img_path, width=300, caption="Goro Shigeno - 메이저(MAJOR)")
+                    sawamura_image_loaded = True
+                    break
+                except:
+                    continue
+        if not sawamura_image_loaded:
+            st.warning("⚠️ 시게노 고로 이미지를 불러올 수 없습니다.")
+            st.info("💡 GitHub 저장소에 '시게노 고로.jpeg' 파일을 app.py와 같은 디렉토리에 업로드해주세요.")
         
         st.markdown("""
         **만화 "메이저(MAJOR)"의 주인공**
