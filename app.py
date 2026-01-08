@@ -116,6 +116,42 @@ def get_player_pitching_stats(player_id, season=2025):
         return None
 
 @st.cache_data(ttl=3600)
+def get_player_career_pitching_stats(player_id):
+    """
+    MLB Stats API를 사용하여 선수의 통산 투수 통계를 가져옵니다.
+    """
+    try:
+        stats_url = f"https://statsapi.mlb.com/api/v1/people/{player_id}/stats"
+        params = {
+            'stats': 'career',
+            'group': 'pitching',
+            'gameType': 'R'  # Regular season only
+        }
+        stats_response = requests.get(stats_url, params=params, timeout=10)
+        stats_data = stats_response.json()
+        
+        if not stats_data.get('stats') or len(stats_data['stats']) == 0:
+            return None
+        
+        stats = stats_data['stats'][0].get('splits', [{}])[0].get('stat', {})
+        
+        return {
+            'W': stats.get('wins', 0),
+            'L': stats.get('losses', 0),
+            'ERA': stats.get('era', 0.0),
+            'SO': stats.get('strikeOuts', 0),
+            'IP': stats.get('inningsPitched', 0.0),
+            'WHIP': stats.get('whip', 0.0),
+            'G': stats.get('gamesPitched', 0),
+            'GS': stats.get('gamesStarted', 0),
+            'CG': stats.get('completeGames', 0),
+            'SHO': stats.get('shutouts', 0),
+            'SV': stats.get('saves', 0)
+        }
+    except Exception as e:
+        return None
+
+@st.cache_data(ttl=3600)
 def get_player_game_log(player_id, season=2025):
     """
     MLB Stats API를 사용하여 선수의 게임 로그 데이터를 가져옵니다.
@@ -551,7 +587,7 @@ with tab3:
             st.warning("⚠️ 오타니 이미지를 불러올 수 없습니다.")
         
         st.markdown("""
-        **1. 개요**
+        **만화보다 더한 만찢남**
         - 일본 국적의 로스앤젤레스 다저스 소속 야구 선수
         - 포지션: 투타겸업 (Two-Way Player)
         - 신체: 193cm, 102kg
@@ -911,9 +947,9 @@ with tab3:
     pitching_col1, pitching_col2 = st.columns(2)
     
     with pitching_col1:
-        st.markdown("#### 오타니 쇼헤이 (실제 성적)")
-        # 실제 투수 통계 가져오기
-        ohtani_pitching = get_player_pitching_stats(660271, season)
+        st.markdown("#### 오타니 쇼헤이 (통산 성적)")
+        # 실제 통산 투수 통계 가져오기
+        ohtani_pitching = get_player_career_pitching_stats(660271)
         
         if ohtani_pitching and ohtani_pitching.get('W', 0) > 0:
             st.metric("승 (W)", ohtani_pitching.get('W', 0))
@@ -926,17 +962,21 @@ with tab3:
             st.metric("삼진 (SO)", ohtani_pitching.get('SO', 0))
             st.metric("이닝 (IP)", f"{ip_val:.1f}" if pd.notna(ip_val) else "0.0")
             st.metric("WHIP", f"{whip_val:.2f}" if pd.notna(whip_val) else "0.00")
+            if ohtani_pitching.get('G', 0) > 0:
+                st.metric("경기 수 (G)", ohtani_pitching.get('G', 0))
+            if ohtani_pitching.get('GS', 0) > 0:
+                st.metric("선발 등판 (GS)", ohtani_pitching.get('GS', 0))
         else:
-            st.info(f"""
-            {season}시즌에는 투수 기록이 없습니다.
+            st.info("""
+            통산 투수 기록을 불러올 수 없습니다.
             
-            **과거 투수 성적 (2022년 기준):**
-            - 승: 15승
-            - 패: 9패
-            - ERA: 2.33
-            - 삼진: 219개
-            - 이닝: 166.0
-            - WHIP: 1.01
+            **참고 통산 투수 성적 (2024년 기준):**
+            - 승: 38승
+            - 패: 19패
+            - ERA: 3.01
+            - 삼진: 608개
+            - 이닝: 481.2
+            - WHIP: 1.08
             """)
     
     with pitching_col2:
